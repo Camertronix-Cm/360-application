@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "macos-clang-x64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/cairo/1.18.2/include/cairo",
+                "/usr/local/Cellar/gstreamer/1.24.8_1/include/gstreamer-1.0",
+                "/usr/local/Cellar/glib/2.82.1/include/glib-2.0",
+                "/usr/local/Cellar/gtk+3/3.24.43/include/gtk-3.0",
+                "/usr/local/Cellar/opencv/4.10.0_11/include/opencv4"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "intelliSenseMode": "macos-clang-x64",
+            "compilerArgs": [
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
