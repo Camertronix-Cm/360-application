@@ -36,7 +36,7 @@ void extract_frame(GstElement *appsink, Mat &frame)
             cout << "[DEBUG] Sample buffer found. Mapping buffer..." << endl;
             gst_buffer_map(buffer, &map, GST_MAP_READ);
             cout << "[DEBUG] Buffer mapped, creating Mat..." << endl;
-            frame = Mat(480, 640, CV_8UC3, (char *)map.data).clone();
+            frame = Mat(1000, 1000, CV_8UC4, (char *)map.data).clone();
             gst_buffer_unmap(buffer, &map);
             cout << "[DEBUG] Frame extracted and copied." << endl;
         }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
     // Setting up pipelines
     cout << "[DEBUG] Setting up pipeline1 (camera)..." << endl;
-    pipeline1 = gst_parse_launch("avfvideosrc device-index=1 ! videoconvert ! video/x-raw,format=BGR,width=640,height=480 ! appsink name=appsink1", NULL);
+    pipeline1 = gst_parse_launch(" avfvideosrc device-index=1 !  videoconvert !  videoscale! video/x-raw! fisheye2equi !  videoconvert  !  appsink name=appsink1", NULL);
 
     if (!pipeline1)
     {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     }
 
     cout << "[DEBUG] Setting up pipeline2 (test pattern)..." << endl;
-    pipeline2 = gst_parse_launch("videotestsrc   ! fisheye2equi ! videoconvert  !  video/x-raw,format=BGR,width=640,height=480 ! appsink name=appsink2", NULL);
+    pipeline2 = gst_parse_launch(" avfvideosrc device-index=2 !  videoconvert !  videoscale! video/x-raw! fisheye2equi !  videoconvert  ! appsink name=appsink2", NULL);
     if (!pipeline2)
     {
         cout << "[ERROR] Failed to create pipeline2." << endl;

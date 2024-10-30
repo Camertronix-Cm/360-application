@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) {
     gst_init(&argc, &argv);
 
     // Create two pipelines for capturing video from two different cameras
-    pipeline1 = gst_parse_launch("autovideosrc ! video/x-raw,format=BGR,width=640,height=480 ! appsink name=appsink1", NULL);
-    pipeline2 = gst_parse_launch("autovideosrc ! video/x-raw,format=BGR,width=640,height=480 ! appsink name=appsink2", NULL);
+    pipeline1 = gst_parse_launch("autovideosrc ! video/x-raw,format=BGR,width=1920,height=1080 ! appsink name=appsink1", NULL);
+    pipeline2 = gst_parse_launch("autovideosrc ! video/x-raw,format=BGR,width=1920,height=1080! appsink name=appsink2", NULL);
 
     // Get references to the appsink elements
     appsink1 = gst_bin_get_by_name(GST_BIN(pipeline1), "appsink1");
