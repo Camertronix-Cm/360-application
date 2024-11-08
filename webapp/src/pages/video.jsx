@@ -2,7 +2,6 @@ import "@egjs/view360/css/view360.min.css";
 import { useEffect, useRef, useState } from "react";
 import View360, { EquirectProjection, ControlBar } from "@egjs/react-view360";
 import Hls from "hls.js";
-import videoFile from "../assets/demo.mp4"; // Your video file path here
 
 const VideoPage = () => {
   const url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
@@ -51,7 +50,7 @@ const isHls = false;
           console.error("HLS error:", data);
         });
       } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
-        videoRef.current.src = videoFile;
+        videoRef.current.src = demoUrl;
         videoRef.current.addEventListener('loadedmetadata', () => {
           console.log("Video metadata loaded, video can be played");
           videoRef.current.play();
@@ -92,7 +91,7 @@ const isHls = false;
         crossOrigin="anonymous"
         style={{ width: "100%", height: "auto", display: "none" }}
       >
-        <source src={videoFile} type="video/mp4" />
+      
         Your browser does not support the video tag.
       </video>
 
