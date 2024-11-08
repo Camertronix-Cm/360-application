@@ -42,7 +42,7 @@ const isHls = false;
         console.log("HLS Player created:", hls);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          console.log("HLS Manifest parsed, video can be played");
+          console.log("HLS Manifest parsed, vidd");
           videoRef.current.play();
         });
 
