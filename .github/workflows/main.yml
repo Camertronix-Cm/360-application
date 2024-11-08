@@ -36,6 +36,7 @@ jobs:
       with:
         path: dist # change to your build folder
         working-directory: ./webapp
+        sparse-checkout: ./webapp"  # Only checks out the webapp directory
         
         
 
