@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.view360-container{
+    background-color: #3ca8fb32;
+    border-radius: 10px;
+}
