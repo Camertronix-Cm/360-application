@@ -9,7 +9,7 @@ using namespace cv;
 using namespace std;
 using namespace std::chrono;
 
-GstElement *pipeline1, *pipeline2, *appsink1, *appsink2;
+GstElement *pipeline1, *pipeline2, *appsink1, *appsink2,*rtmpPipeline, *appsrc;
 Mat frame1, frame2, concatenatedFrame;
 
 void extract_frame(GstElement *appsink, Mat &frame)
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
     // Setting up pipelines
     cout << "[DEBUG] Setting up pipeline1 (camera)..." << endl;
-    pipeline1 = gst_parse_launch(" v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width=1920,height=1080 !  nvvidconv !  videoscale !  fisheye2equi   !   appsink name=appsink1", NULL);
+    pipeline1 = gst_parse_launch(" v4l2src device=/dev/video0 ! video/x-raw,format=YUY2,width=1920,height=1080 !  videoconvert !  videoscale !  fisheye2equi   !   appsink name=appsink1", NULL);
 
     if (!pipeline1)
     {
@@ -116,12 +116,22 @@ int main(int argc, char *argv[])
     }
 
     cout << "[DEBUG] Setting up pipeline2 (test pattern)..." << endl;
-    pipeline2 = gst_parse_launch(" v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width=1920,height=1080  ! nvvidconv ! videoscale! fisheye2equi   !   appsink name=appsink2", NULL);
+    pipeline2 = gst_parse_launch(" v4l2src device=/dev/video1 ! video/x-raw,format=YUY2,width=1920,height=1080  ! videoconvert ! videoscale! fisheye2equi   !   appsink name=appsink2", NULL);
     if (!pipeline2)
     {
         cout << "[ERROR] Failed to create pipeline2." << endl;
         return -1;
     }
+    
+    rtmpPipeline = gst_parse_launch(
+    "appsrc name=rtmpsrc ! videoconvert ! x264enc tune=zerolatency bitrate=500 speed-preset=ultrafast ! flvmux ! rtmpsink location=rtmp://your-server-ip/app/stream-key",
+    NULL
+);
+
+if (!rtmpPipeline) {
+    cout << "[ERROR] Failed to create RTMP pipeline." << endl;
+    return -1;
+}
 
     // Getting appsinks
     cout << "[DEBUG] Getting appsink1 from pipeline1..." << endl;
@@ -156,6 +166,9 @@ int main(int argc, char *argv[])
     }
     cout << "[DEBUG] Setting pipeline2 to PLAYING state..." << endl;
     gst_element_set_state(pipeline2, GST_STATE_PLAYING);
+    
+    appsrc = gst_bin_get_by_name(GST_BIN(rtmpPipeline), "rtmpsrc");
+gst_element_set_state(rtmpPipeline, GST_STATE_PLAYING);
 
     namedWindow("Concatenated Output", WINDOW_AUTOSIZE);
 
@@ -164,19 +177,32 @@ int main(int argc, char *argv[])
     while (true)
     {
         auto loop_start = high_resolution_clock::now();
-        cout << "[DEBUG] Extracting frame1..." << endl;
+        //cout << "[DEBUG] Extracting frame1..." << endl;
         extract_frame(appsink1, frame1);
-        cout << "[DEBUG] Extracting frame2..." << endl;
+        //cout << "[DEBUG] Extracting frame2..." << endl;
         extract_frame(appsink2, frame2);
 
         if (!frame1.empty() && !frame2.empty())
         {
-            cout << "[DEBUG] Concatenating frames..." << endl;
+            //cout << "[DEBUG] Concatenating frames..." << endl;
             hconcat(frame1, frame2, concatenatedFrame);
 
-            cout << "[DEBUG] Displaying concatenated frame..." << endl;
+            //cout << "[DEBUG] Displaying concatenated frame..." << endl;
             imshow("Concatenated Output", concatenatedFrame);
 
+	// Convert OpenCV Mat to GstBuffer
+        GstBuffer *buffer;
+        guint size = concatenatedFrame.total() * concatenatedFrame.elemSize();
+        buffer = gst_buffer_new_allocate(NULL, size, NULL);
+        GstMapInfo map;
+        gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+        memcpy(map.data, concatenatedFrame.data, size);
+        gst_buffer_unmap(buffer, &map);
+
+        // Push buffer to the RTMP pipeline
+        GstFlowReturn ret;
+        g_signal_emit_by_name(appsrc, "push-buffer", buffer, &ret);
+        gst_buffer_unref(buffer);
             if (waitKey(10) == 'q')
             {
                 cout << "[DEBUG] 'q' pressed, exiting loop." << endl;
@@ -200,8 +226,11 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] Stopping pipelines and cleaning up..." << endl;
     gst_element_set_state(pipeline1, GST_STATE_NULL);
     gst_element_set_state(pipeline2, GST_STATE_NULL);
+    gst_element_set_state(rtmpPipeline, GST_STATE_NULL);
     gst_object_unref(pipeline1);
     gst_object_unref(pipeline2);
+    gst_object_unref(appsrc);
+    gst_object_unref(rtmpPipeline);	
     destroyAllWindows();
 
     cout << "[DEBUG] Program finished." << endl;
