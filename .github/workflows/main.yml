@@ -36,9 +36,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+        with:
+          path: ./webapp
 
       - name: Vite Github Pages Deployer
         uses: skywarth/vite-github-pages-deployer@v1.4.0
-        with:
-          public_base_path: ./webapp
         id: deploy_to_pages
