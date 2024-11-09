@@ -33,8 +33,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: production-files
-          working-directory: ./webapp
-          path: ./dist
+          path: ./webapp/dist
 
   deploy:
     name: Deploy
@@ -46,13 +45,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          working-directory: ./webapp
           name: production-files
-          path: ./dist
+          path: ./webapp/dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          working-directory: ./webapp
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./webapp./dist
