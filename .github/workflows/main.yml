@@ -23,4 +23,36 @@ jobs:
         uses: bahmutov/npm-install@v1
         with:
           working-directory: ./webapp
-        id: deploy_to_pages
+
+      - name: Build project
+        working-directory: ./webapp
+        run: npm run build
+        
+
+      - name: Upload production-ready build files
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-files
+          working-directory: ./webapp
+          path: ./dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          working-directory: ./webapp
+          name: production-files
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          working-directory: ./webapp
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
